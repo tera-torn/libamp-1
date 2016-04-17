@@ -20,6 +20,8 @@
 extern "C" {
 #endif
 
+/***  [API]  Section 1.0)  -  Libamp Library Return Value Error Codes    */
+
 /* Error codes used in various places */
 
 #define AMP_BAD_KEY_SIZE    100
@@ -88,6 +90,10 @@ static const char AMP_ERROR_UNKNOWN[]   = "UNKNOWN";
 
 /* Return a string describing the passed in error code */
 AMP_DLL const char *amp_strerror(amp_error_t amp_error_num);
+
+
+/***  [API]  Section 1.1)  -  libamp struct objects for parsing an AMP stream,
+                              handling request/response objects, etc.       */
 
 
 typedef struct AMP_Box AMP_Box_T;
@@ -308,6 +314,16 @@ typedef int(*write_amp_data_func)(AMP_Proto_T *proto, unsigned char *buf,
                                   int buf_size, void *write_arg);
 
 
+/*** [API] Section 1.2)  -  Core libamp API for setting up an AMP Protocol,
+ *                          aking calls, handling requests and responses, etc.
+ *
+ ***************************************************************
+ *   CORE LIBAMP API BELOW                                     *
+ *                                                             *
+ *   The stuff above is important, but start your exploration  *
+ *   of the libamp API here. :)                                *
+ ***************************************************************/
+
 /* Initialize a new AMP Protocol.
  *
  * You create one of these for each connection to a remote AMP peer.
@@ -487,7 +503,12 @@ void AMP_DLL amp_log(char *fmt, ...);
 void AMP_DLL amp_stderr_logger(char *message);
 
 
-/* AMP Types - functions for encoding and decoding the
+/***  [API]  Section 1.3)  -  Encoding values to an AMP Box, and decoding values
+ *                            from an AMP Box. These functions map instances of AMP
+ *                            Value Types as described here http://amp-protocol.net/Types
+ *                            to/from native C variables (e.g. int, double, char[], etc).
+ *
+ * AMP Types - functions for encoding and decoding the
  * standard AMP types
  *
  *  -= GETTING VALUES OUT OF AN AMP_Box =-
