@@ -326,7 +326,9 @@ typedef int(*write_amp_data_func)(AMP_Proto_T *proto, unsigned char *buf,
 
 /* Initialize a new AMP Protocol.
  *
- * You create one of these for each connection to a remote AMP peer.
+ * You create one of these for each connection to a remote AMP peer. You
+ * will always need one or more of these objects - a new one should be created
+ * for every AMP peer that your application talks to.
  *
  * Returns an AMP_Proto_T * on success, or NULL on allocation failure. */
 AMP_DLL AMP_Proto_T *amp_new_proto(void);
@@ -337,6 +339,13 @@ AMP_DLL AMP_Proto_T *amp_new_proto(void);
  * Any current box being accumulated will be forgotten, and the AMP_Proto
  * will be placed in a state to begin parsing a new box. Any error state
  * associated with the AMP_Proto will be cleared.
+ * 
+ * Don't call this unless you know what you're doing. Other side of the AMP
+ * connection won't be told about this event - and you may fail to parse
+ * the byte-stream after this point if called at an arbitrary point. (e.g. if the
+ * AMP_Proto_T was in the middle of parsing an incoming AMP box, we would forget the
+ * partially accumulated Box, and the rest of the stream would likely cause a parsing
+ * error as we attempt to parse it as a new AMP Box.
  */
 void AMP_DLL amp_reset_proto(AMP_Proto_T *proto);
 
