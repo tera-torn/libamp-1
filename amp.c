@@ -663,6 +663,8 @@ int amp_parse_box(AMP_Proto_T *proto, AMP_Box_T *box, int *bytesConsumed,
                  it just means we never found the end of an AMP box */
 }
 
+/* TODO : implimit default total-message-size limit in AMP protocol parser loop.
+   Bail out with fatal error if we reach limit before parsing a full AMP box. */
 int amp_consume_bytes(AMP_Proto_T *proto, unsigned char* buf, int len)
 {
     /* Guaranteed to have at least 1 byte in `buf' */
