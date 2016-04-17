@@ -40,3 +40,9 @@ libjansson:
 	cd jansson && make
 	cd jansson && make install
 
+benchmark:
+	cd examples && make benchmark
+	examples/asyncserver 22380 &
+	examples/benchclient localhost:22380 100000 > benchlog.txt
+
+ 

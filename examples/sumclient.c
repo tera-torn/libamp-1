@@ -62,6 +62,9 @@ void usage()
 void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state);
 
 
+/*  
+ *   Code to Get reply
+ */
 void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
 {
     Sum_State_T sum_state = callback_arg;
@@ -71,7 +74,7 @@ void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
     switch (result->reason)
     {
     case AMP_SUCCESS:
-
+        /* Decode reply keyword value 'total' */
         if ( (ret = amp_get_long_long((result->response)->args,
                                       "total", &total)) != 0) {
             fprintf(stderr, "Couldn't get total key: %s\n", amp_strerror(ret));
@@ -103,6 +106,10 @@ void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
     }
 }
 
+
+/*  
+ *   Code to Send AMP message
+ */
 void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state)
 {
     int ret;
@@ -121,6 +128,8 @@ void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state)
     }
 }
 
+
+/* Get some bytes to AMP peer somehow.. (gets here via do_sum_call() internals..)*/
 int do_write(AMP_Proto_T *proto, unsigned char *buf, int bufSize, void *write_arg)
 {
     send(*(int *)write_arg, buf, bufSize, 0);

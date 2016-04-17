@@ -4,3 +4,5 @@ clean:
 	scons -c
 debug:
 	scons -Q debug=1
+benchmark:
+	scons
