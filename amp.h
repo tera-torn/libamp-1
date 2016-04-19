@@ -599,11 +599,12 @@ int AMP_DLL amp_put_cstring(AMP_Box_T *box, const char *key, const char *value);
 /* AMP Type: Integer (C type `long long') */
 
 /* get a `long long' from a value in an AMP box and store it in
- * the variable pointed to by `value' */
+ * the variable pointed to by `value'. (Use this for anything that `int' may not hold.)*/
 int AMP_DLL amp_get_long_long(AMP_Box_T *box, const char *key, long long *value);
 
 
-/* put a `long long' value in to an AMP box. */
+/* put a `long long' value in to an AMP box. (Use this for anything that
+   `int' may not hold.) */
 int AMP_DLL amp_put_long_long(AMP_Box_T *box, const char *key, long long value);
 
 
@@ -653,7 +654,6 @@ int AMP_DLL amp_put_bool(AMP_Box_T *box, const char *key, int value);
 /* Encode and store an `AMP_DateTime' in to an AMP_Box.
  * Returns 0 on success, or an AMP_* error code on failure. */
 int amp_put_datetime(AMP_Box_T *box, const char *key, AMP_DateTime_T *value);
-
 
 /* Retrieve and decode an `AMP_DateTime' from an AMP_Box.
  * Stores the decoded data in to the `AMP_DateTime' pointed to by `value'.

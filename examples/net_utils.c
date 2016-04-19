@@ -39,6 +39,7 @@ int connect_tcp(char *hostname, int port, const char **errstr)
     }
 
     s = -1;
+    /* TODO document this for loop.. :/ */
     for (res = res0; res; res = res->ai_next) {
         s = socket(res->ai_family, res->ai_socktype,
                    res->ai_protocol);
@@ -49,6 +50,7 @@ int connect_tcp(char *hostname, int port, const char **errstr)
         ((struct sockaddr_in *)res->ai_addr)->sin_port = htons(port);
 
         if (connect(s, res->ai_addr, res->ai_addrlen) == -1) {
+            /* TODO probably need to copy error str for mem safety. */
             *errstr = strerror(errno);
             close(s);
             s = -1;
