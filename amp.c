@@ -4,10 +4,24 @@
  * See LICENSE.txt for details.
  */
 
-/* Asynchrous Messaging Protocol
+/***************************************************************
  *
- * http://amp-protocol.net
+ *    Asynchrous Messaging Protocol  -  http://amp-protocol.net
  *
+ ***************************************************************
+ *
+ *    See amp.h for Public Exported and Private Exported APIs.
+ *
+ *      Public APIs are exported and usable from any linked client code
+ *      and backward compatibility is guaranteed.
+ *
+ *      Private APIs are exported and usable from any linked client code
+ *      BUT backward compatibility is NOT guaranteed; these APIs could be
+ *      changed or removed in the future.
+ *
+ *    NOTE:  Many of the functions here are documented in amp.h - reading
+ *           the API docs for exported functions defined in this file will
+ *           help in understanding their implementation.
  */
 
 #include <stdio.h>
@@ -18,6 +32,42 @@
 #include "amp.h"
 #include "amp_internal.h"
 #include "dispatch.h"
+
+void _debug_print_box(AMP_Box_T *box) {
+    unsigned char *buf = NULL;
+
+    struct binding *p;
+    int i;
+    bool first;
+
+    if (box == NULL)
+        return;
+
+    fprintf(stderr, "<AmpBox ");
+
+    first = true;
+    for (i = 0; i < box->size; i++)
+    {
+        p = box->buckets[i];
+
+        while (p)
+        {
+            if (!first) {
+                fprintf(stderr, ", ");
+            } else {
+                first = false;
+            }
+            fprintf(stderr, "%s: ", p->keyval->key);
+            buf = MALLOC(p->keyval->valueSize+1);
+            strncpy((char *)buf, (const char *)p->keyval->value, p->keyval->valueSize);
+            buf[p->keyval->valueSize] = '\x00';
+            fprintf(stderr, "%s", (unsigned char *)buf);
+            free(buf);
+            p = p->link;
+        }
+    }
+    fprintf(stderr, ">\n");
+}
 
 
 amp_error_t _amp_send_unhandled_command_error(AMP_Proto_T *proto, AMP_Request_T *req)
@@ -85,6 +135,7 @@ error:
     return ret;
 }
 
+
 int _amp_new_request_from_box(AMP_Box_T *box, AMP_Request_T **request)
 {
     int ret, buf_size;
@@ -133,6 +184,7 @@ error:
     return ret;
 }
 
+
 int _amp_new_response_from_box(AMP_Box_T *box, AMP_Response_T **response)
 {
     int ret;
@@ -160,6 +212,7 @@ error:
     free(r);
     return ret;
 }
+
 
 int _amp_new_result_with_response(AMP_Response_T *response, AMP_Result_T **result)
 {
@@ -233,6 +286,7 @@ error:
     amp_free_chunk(error_descr);
     return ret;
 }
+
 
 int _amp_new_result_with_error(AMP_Error_T *error, AMP_Result_T **result)
 {
@@ -378,6 +432,7 @@ int _amp_process_full_packet(AMP_Proto_T *proto, AMP_Box_T *box)
     return 0;
 }
 
+
 AMP_Proto_T *amp_new_proto(void)
 {
     AMP_Proto_T *proto;
@@ -469,6 +524,7 @@ void amp_free_proto(AMP_Proto_T *proto)
     debug_print("Free AMP_Proto at 0x%p\n", proto);
 }
 
+
 void amp_set_write_handler(AMP_Proto_T *proto, write_amp_data_func func,
                            void *write_arg)
 {
@@ -477,27 +533,6 @@ void amp_set_write_handler(AMP_Proto_T *proto, write_amp_data_func func,
 }
 
 
-/* Try to parse a single AMP box out of the passed-in buffer
- * and fill the key/values in to `box'.
- *
- * Record the number of bytes consumed in the int pointed to
- * by `bytesConsumed'. `bytesConsumed' will be set regardless
- * of the success or failure of the parsing attempt.
- *
- * Returns 1 if a a full box was parsed, or 0 if not.
- *
- * Even if 0 is returned, the box may have been partially
- * filled with the key/values that have been accumulated
- * thus far.
- *
- * The parser will be left in such a state that subsequent calls
- * to amp_parse_box() will continue where it left off, and
- * continue to fill `box' with key/values until a full box
- * has been parsed.
- *
- * If an error occurs during parsing, proto->error will be set
- * and 0 will be returned.
- */
 int amp_parse_box(AMP_Proto_T *proto, AMP_Box_T *box, int *bytesConsumed,
                   unsigned char* buf, int len)
 {
@@ -663,6 +698,81 @@ int amp_parse_box(AMP_Proto_T *proto, AMP_Box_T *box, int *bytesConsumed,
                  it just means we never found the end of an AMP box */
 }
 
+
+int amp_parse_box_full(AMP_Proto_T *proto, AMP_Box_T *box, unsigned char* buf, int len)
+{
+    int idx = 0;
+    int err;
+
+    short val_len;
+    short key_len;
+
+    while (1) {
+
+    //case KEY_LEN_READ:
+
+        if ( (len - idx) < 2) {
+            return -1;
+        }
+
+
+        if ( buf[idx] != '\0')
+        {
+            return -2;
+        }
+
+        key_len = buf[idx+1];
+        
+        if (!key_len) {
+            // END of AMP packet.
+            return 0;
+        }
+
+        idx += 2;
+
+    //case KEY_DATA_READ:
+
+        if ( key_len > (len - idx) ) {
+            return -3;
+        }
+
+        memcpy( &(proto->key_data[0]), buf+idx, key_len );
+        proto->key_data[key_len] = '\x00';
+        idx += key_len;
+
+        err = amp_put_bytes(box, proto->key_data,
+                  (const unsigned char *)"junk", 4);
+        if (err) {
+            return -77;
+        }
+
+    //case VAL_LEN_READ:
+
+        val_len = buf[idx];
+        /* left shift it by one octet since this is the
+         * most-significant byte we just read */
+        val_len = val_len << 8;
+        val_len |= buf[idx+1];
+
+        idx += 2;
+
+    //case VAL_DATA_READ:
+
+        if ( val_len > (len - idx) ) {
+            return -4;
+        }
+
+        memcpy( &(proto->val_data[0]), buf+idx, val_len );
+        idx += val_len;
+
+        err = amp_put_bytes(box, proto->key_data, proto->val_data, val_len);
+        if (err) {
+            return err;
+        }
+    }
+}
+
+
 /* TODO : implimit default total-message-size limit in AMP protocol parser loop.
    Bail out with fatal error if we reach limit before parsing a full AMP box.
 
@@ -716,6 +826,7 @@ int amp_consume_bytes(AMP_Proto_T *proto, unsigned char* buf, int len)
     return 0;
 }
 
+
 AMP_Chunk_T *amp_new_chunk(int size)
 {
     AMP_Chunk_T *c;
@@ -732,6 +843,7 @@ AMP_Chunk_T *amp_new_chunk(int size)
     return c;
 }
 
+
 AMP_Chunk_T *amp_chunk_for_buffer(unsigned char *buf, int size)
 {
     AMP_Chunk_T *c;
@@ -743,6 +855,7 @@ AMP_Chunk_T *amp_chunk_for_buffer(unsigned char *buf, int size)
     return c;
 }
 
+
 AMP_Chunk_T *amp_chunk_copy_buffer(unsigned char *buf, int size)
 {
     AMP_Chunk_T *c;
@@ -753,10 +866,12 @@ AMP_Chunk_T *amp_chunk_copy_buffer(unsigned char *buf, int size)
     return c;
 }
 
+
 void amp_free_chunk(AMP_Chunk_T *chunk)
 {
     free(chunk);
 }
+
 
 int amp_chunks_equal(AMP_Chunk_T *c1, AMP_Chunk_T *c2)
 {
@@ -765,6 +880,7 @@ int amp_chunks_equal(AMP_Chunk_T *c1, AMP_Chunk_T *c2)
         return 1;
     return 0;
 }
+
 
 /* XXX TODO TESTS */
 void amp_free_request(AMP_Request_T *request)
@@ -784,6 +900,7 @@ void amp_free_request(AMP_Request_T *request)
     free(request);
 }
 
+
 int _amp_new_result_with_cancel(AMP_Result_T **result)
 {
     AMP_Result_T *r;
@@ -800,11 +917,13 @@ int _amp_new_result_with_cancel(AMP_Result_T **result)
     return 0;
 }
 
+
 void amp_free_response(AMP_Response_T *response)
 {
     amp_free_box(response->args);
     free(response);
 }
+
 
 /* XXX TODO TESTS */
 void amp_free_error(AMP_Error_T *error)
@@ -817,6 +936,7 @@ void amp_free_error(AMP_Error_T *error)
     free(error);
 }
 
+
 void amp_free_result(AMP_Result_T *result)
 {
     if (result->response != NULL)
@@ -828,6 +948,7 @@ void amp_free_result(AMP_Result_T *result)
     free(result);
 }
 
+
 int amp_next_ask_key(AMP_Proto_T *proto)
 {
     /* In the case that proto->last_ask_key == UINT_MAX it will wrap around
@@ -836,6 +957,7 @@ int amp_next_ask_key(AMP_Proto_T *proto)
     proto->last_ask_key++;
     return proto->last_ask_key;
 }
+
 
 int _amp_do_write(AMP_Proto_T *proto, unsigned char *buf, int buf_size)
 {
@@ -847,6 +969,7 @@ int _amp_do_write(AMP_Proto_T *proto, unsigned char *buf, int buf_size)
     }        
     return proto->write(proto, buf, buf_size, proto->write_arg);
 }
+
 
 static int _amp_call(AMP_Proto_T *proto, const char *command, AMP_Box_T *args,
                      amp_callback_func callback, void *callback_arg, unsigned int *ask_key_ret,
@@ -910,11 +1033,13 @@ error:
     return ret;
 }
 
+
 int amp_call(AMP_Proto_T *proto, const char *command, AMP_Box_T *args,
              amp_callback_func callback, void *callback_arg, unsigned int *ask_key)
 {
     return _amp_call(proto, command, args, callback, callback_arg, ask_key, 1);
 }
+
 
 int amp_call_no_answer(AMP_Proto_T *proto, const char *command, AMP_Box_T *args)
 {
@@ -924,6 +1049,7 @@ int amp_call_no_answer(AMP_Proto_T *proto, const char *command, AMP_Box_T *args)
      * special keys in their box cause problems ever? */
     return _amp_call(proto, command, args, NULL, NULL, NULL, 0);
 }
+
 
 int amp_cancel(AMP_Proto_T *proto, int ask_key)
 {
@@ -952,6 +1078,7 @@ int amp_cancel(AMP_Proto_T *proto, int ask_key)
     return AMP_NO_SUCH_ASK_KEY;
 }
 
+
 void amp_add_responder(AMP_Proto_T *proto, const char *command, void *responder,
                        void *responder_arg)
 {
@@ -959,10 +1086,12 @@ void amp_add_responder(AMP_Proto_T *proto, const char *command, void *responder,
     _amp_put_responder(proto->responders, command, resp);
 }
 
+
 void amp_remove_responder(AMP_Proto_T *proto, const char *command)
 {
     _amp_remove_responder(proto->responders, command);
 }
+
 
 int amp_respond(AMP_Proto_T *proto, AMP_Request_T*request, AMP_Box_T *args)
 {
@@ -981,6 +1110,7 @@ int amp_respond(AMP_Proto_T *proto, AMP_Request_T*request, AMP_Box_T *args)
      * so just pass on the value */
     return _amp_do_write(proto, buf, buf_size);
 }
+
 
 /* Error codes as defined in amp.h */
 struct {
@@ -1001,6 +1131,7 @@ struct {
     {ENOMEM,              "malloc() failed. Out Of Memory."}
 };
 
+
 const char *amp_strerror(int amp_error_num)
 {
     int i;
@@ -1012,4 +1143,3 @@ const char *amp_strerror(int amp_error_num)
 
     return "Unknown libamp error code";
 }
-

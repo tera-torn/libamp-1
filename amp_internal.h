@@ -118,7 +118,7 @@ struct AMP_Proto
     /* XXX TODO - do we really want each AMP_Proto
      * to consume 65k? This should be optimised
      * at some point */
-    unsigned char val_data[256*256];
+    unsigned char val_data[256*256+1];
     int val_data_fetched; /* Num bytes fetched so far */
 
     unsigned int last_ask_key;

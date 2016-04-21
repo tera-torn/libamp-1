@@ -46,13 +46,13 @@ struct consume_case
 
 unsigned char validBox[] = {
     0x00, 0x07, /* key of length 7 follows */
-    0x5F, 0x61, 0x6E, 0x73, 0x77, 0x65, 0x72,
+    0x5F, 0x61, 0x6E, 0x73, 0x77, 0x65, 0x72, /* "_answer" */
     0x00, 0x02, /* value of length 2 follows */
-    0x32, 0x33,
+    0x32, 0x33, /* "23" */
     0x00, 0x05, /* key of length 5 follows */
-    0x74, 0x6F, 0x74, 0x61, 0x6C,
+    0x74, 0x6F, 0x74, 0x61, 0x6C, /* "total" */
     0x00, 0x02, /* value of length 2 follows */
-    0x39, 0x34,
+    0x39, 0x34, /* "94" */
     0x00, 0x00, /* empty key terminates the box */
 };
 
@@ -1014,6 +1014,62 @@ START_TEST(test_parse_box_with_malloc_failures)
 }
 END_TEST
 
+START_TEST(test_parse_box_full_with_malloc_failures)
+{
+    AMP_Proto_T *proto;
+    int fail_after = 0;
+    int err;
+    int ret;
+    unsigned char *data;
+    int *size;
+
+    while (1)
+    {
+        proto = amp_new_proto();
+
+        //enable_malloc_failures(fail_after++);
+
+        /* run code under test */
+        err = amp_parse_box_full(proto, proto->box,
+                                 validBox, sizeof(validBox));
+        fprintf(stderr, "err: %d\n", err);
+
+        /* clean up and check result */
+        //disable_malloc_failures();
+
+        /* Were one or more malloc failures simulated? */
+        //if (allocation_failure_occurred)
+        if (0)
+        {
+            /* Yes */
+            fail_unless(err == ENOMEM);
+            amp_free_proto(proto);
+        }
+        else
+        {
+            
+            fprintf(stderr, "WEEEEEEEEEEEEEE!!!\n");
+
+            _debug_print_box(proto->box);
+
+            fail_unless(err == 0);
+            ret = amp_get_bytes(proto->box, "_answer", &data, &size);
+
+            fprintf(stderr, "ret: %d\n", ret);
+            fail_unless(strcmp("23", data) == 0);
+
+            amp_get_bytes(proto->box, "total", &data, &size);
+            fail_unless(strcmp("94", data) == 0);
+
+            amp_free_proto(proto);
+            break;
+        }
+
+    break;
+    }
+}
+END_TEST
+
 START_TEST(test_amp_call_with_malloc_failures)
 {
     AMP_Box_T *args;
@@ -1828,6 +1884,7 @@ Suite *make_core_suite()
     tcase_add_test(tc_memory, test_new_box_with_malloc_failures);
     tcase_add_test(tc_memory, test_new_proto_with_malloc_failures);
     tcase_add_test(tc_memory, test_parse_box_with_malloc_failures);
+    tcase_add_test(tc_memory, test_parse_box_full_with_malloc_failures);
     tcase_add_test(tc_memory, test_amp_call_with_malloc_failures);
     tcase_add_test(tc_memory, test_amp_cancel_with_malloc_failures);
     tcase_add_test(tc_memory, test_amp_chunks_with_malloc_failures);

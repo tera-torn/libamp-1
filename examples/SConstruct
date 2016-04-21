@@ -30,6 +30,7 @@ COMMON_SOURCES = ['strtonum.c', 'common.c']
 SUMCLIENT_SOURCES      = ['sumclient.c', 'net_utils.c'] + COMMON_SOURCES
 BENCHCLIENT_SOURCES    = ['benchclient.c', 'net_utils.c', 'time_utils.c'] + \
                           COMMON_SOURCES
+BENCH_PARSING_SOURCES  = ['bench_parsing.c'] + COMMON_SOURCES
 ASYNCSERVER_SOURCES    = ['asyncserver.c'] + COMMON_SOURCES
 
 env.Append(CPPPATH = ['/usr/local/include/'])
@@ -59,18 +60,26 @@ env.Append(LIBPATH = ['..'])
 #
 
 
-# Target: `sumclient' executable.
-env.Program('sumclient', SUMCLIENT_SOURCES, LIBS=COMMON_LIBS)
+# Target: `sum_client' executable.
+env.Program('sum_client', SUMCLIENT_SOURCES, LIBS=COMMON_LIBS)
 
-
-# Target: `benchclient' executable.
+# Target: `bench_client' executable.
 env3 = env.Clone()
 env3['OBJPREFIX'] = 'bench-' # avoid object file conflicts
-env3.Program('benchclient', BENCHCLIENT_SOURCES, LIBS=COMMON_LIBS)
+env3.Program('bench_client', BENCHCLIENT_SOURCES, LIBS=COMMON_LIBS)
 
+# Target: `bench_parsing' executable.
+env4 = env.Clone()
+env4['OBJPREFIX'] = 'bench-parsing' # avoid object file conflicts
+env4.Program('bench_parsing', BENCH_PARSING_SOURCES, LIBS=COMMON_LIBS)
 
-# Target: `asyncserver' executable.
+# Target: `bench_parsing_new' executable.
+env5 = env.Clone()
+env5['OBJPREFIX'] = 'bench-parsing-new' # avoid object file conflicts
+env5.Program('bench_parsing_new', ['bench_parsing_new.c'] + COMMON_SOURCES, LIBS=COMMON_LIBS)
+
+# Target: `async_server' executable. Used with `sum_client' and `bench_client'.
 env2 = env.Clone()
 env2['OBJPREFIX'] = 'async-' # avoid object file conflicts
-env2.Program('asyncserver', ASYNCSERVER_SOURCES, LIBS=COMMON_LIBS+['event'])
+env2.Program('async_server', ASYNCSERVER_SOURCES, LIBS=COMMON_LIBS+['event'])
 

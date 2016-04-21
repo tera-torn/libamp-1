@@ -94,7 +94,7 @@ AMP_Box_T *amp_new_box(void)
 
     box->cmp = cmp_string;
     box->hash = hash_string;
-    box->buckets = (struct binding **)(box + 1);
+    box->buckets = (struct binding **)(box + 1); /* LOL pointer maths */
     for (i = 0; i < box->size; i++)
                 box->buckets[i] = NULL;
     box->length = 0;
@@ -247,11 +247,13 @@ int _amp_put_buf(AMP_Box_T *box, const char *key,
     int bytesNeeded;
 
     keySize = strlen(key);
-    if (keySize > MAX_KEY_LENGTH || keySize == 0)
+    if (keySize > MAX_KEY_LENGTH || keySize == 0) {
         return AMP_BAD_KEY_SIZE;
+    }
 
-    if (buf_size > MAX_VALUE_LENGTH || buf_size < 0)
+    if (buf_size > MAX_VALUE_LENGTH || buf_size < 0) {
         return AMP_BAD_VAL_SIZE;
+    }
 
     bytesNeeded = 1; /* 1 for NUL-byte at end of key string */
     bytesNeeded += sizeof(struct amp_key_value);
@@ -262,8 +264,9 @@ int _amp_put_buf(AMP_Box_T *box, const char *key,
      * char this is just a placeholder and will be
      * overwritten */
 
-    if ( (keyval = MALLOC(bytesNeeded)) == NULL)
+    if ( (keyval = MALLOC(bytesNeeded)) == NULL) {
         return ENOMEM;
+    }
 
     /* Initialize amp_key_value */
     keyval->key = &(keyval->_bufferSpaceStartsHere);

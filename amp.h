@@ -390,7 +390,14 @@ void AMP_DLL amp_free_proto(AMP_Proto_T *proto);
 int AMP_DLL amp_consume_bytes(AMP_Proto_T *proto, unsigned char* buf, int nbytes);
 
 
-/* Set handler function for writing data to the remote AMP peer */
+/* Set handler function for writing data to the remote AMP peer.
+ *   
+ * ALWAYS call this function to set a write handler if you plan on using amp_call*()
+ * APIs or you plan to use this AMP_Proto_T to reply to any commands.
+ * 
+ * TODO: libamp crashes hard if it tries to write data to the AMP peer but doesn't have
+ * a write handler set (NULL-ptr deref).
+ */
 void AMP_DLL amp_set_write_handler(AMP_Proto_T *proto, write_amp_data_func func,
                                    void *write_arg);
 
@@ -512,10 +519,13 @@ void AMP_DLL amp_log(char *fmt, ...);
 void AMP_DLL amp_stderr_logger(char *message);
 
 
-/***  [API]  Section 1.3)  -  Encoding values to an AMP Box, and decoding values
+/***************************************************************
+ ***  [API]  Section 1.3)  -  Encoding values to an AMP Box, and decoding values
  *                            from an AMP Box. These functions map instances of AMP
  *                            Value Types as described here http://amp-protocol.net/Types
  *                            to/from native C variables (e.g. int, double, char[], etc).
+ *
+ ***************************************************************
  *
  * AMP Types - functions for encoding and decoding the
  * standard AMP types
@@ -587,7 +597,11 @@ int AMP_DLL amp_get_bytes(AMP_Box_T *box, const char *key, unsigned char **buf, 
  *
  * This makes a copy of the passed in key, and buffer, and takes
  * ownership of these copies. Thus they will be free()ed automatically
- * when the the AMP_Box is free()ed with amp_free_box() */
+ * when the the AMP_Box is free()ed with amp_free_box()
+ *
+ * TODO: make version that also accepts a key-length to prevent
+ * overhead of calling strlen() to read the key etc
+ */
 int AMP_DLL amp_put_bytes(AMP_Box_T *box, const char *key, const unsigned char *buf, int size);
 
 
@@ -663,6 +677,50 @@ int amp_get_datetime(AMP_Box_T *box, const char *key, AMP_DateTime_T *value);
 
 
 /* TODO - More function prototypes for other standard AMP data types */
+
+
+/***************************************************************
+ *
+ ***  [API]  Section 1.5)  -  NON-PUBLIC APIs
+ *
+ ***************************************************************/
+
+
+/*
+ * Try to parse a single AMP box out of the passed-in buffer
+ * and fill the key/values in to `box' - resume parsing from
+ * the parsing state of the given AMP_Proto_T; sets
+ * `proto->error' to indicate any error during parsing.
+ *
+ * Record the number of bytes consumed in the int pointed to
+ * by `bytesConsumed'. `bytesConsumed' will be set regardless
+ * of the success or failure of the parsing attempt.
+ *
+ * Returns 1 if a a full box was parsed, or 0 if not.
+ *
+ * Even if 0 is returned, the box may have been partially
+ * filled with the key/values that have been accumulated
+ * thus far.
+ *
+ * The parser will be left in such a state that subsequent calls
+ * to amp_parse_box() will continue where it left off, and
+ * continue to fill `box' with key/values until a full box
+ * has been parsed.
+ *
+ * If an error occurs during parsing, `proto->error' will be set
+ * and 0 will be returned.
+ */
+int AMP_DLL amp_parse_box(AMP_Proto_T *proto, AMP_Box_T *box, int *bytesConsumed,
+                          unsigned char* buf, int len);
+
+
+/* Try to parse a single AMP box out of the passed-in buffer
+ * in one go. Parses only one AMP box beginning at the start
+ * of the buffer, and returns 0 on success (end of box) - or
+ * returns a non-zero error code */
+int AMP_DLL amp_parse_box_full(AMP_Proto_T *proto, AMP_Box_T *box,
+                               unsigned char* buf, int len);
+
 
 #ifdef __cplusplus
 }
