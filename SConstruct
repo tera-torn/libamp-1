@@ -11,10 +11,17 @@ if sys.platform == 'win32':
 else:
     env = Environment()
     
+spew = ARGUMENTS.get('spew', 0)
+if int(spew):
+    env.Append(CFLAGS = ['-DDEBUG'])
+
 debug = ARGUMENTS.get('debug', 0)
 if int(debug):
     env.Append(CCFLAGS = '-g')
-    env.Append(CFLAGS = ['-DDEBUG'])
+
+optimization = ARGUMENTS.get('optimization', 2)
+optLevel = int(optimization)
+env.Append(CCFLAGS = '-O' + str(optLevel))
 
 # Respect common environment variables that users may want to set
 IMPORTED_VARS = ['CC', 'CFLAGS', 'CPPFLAGS', 'CCFLAGS']

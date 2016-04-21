@@ -1,5 +1,6 @@
 default:
 	scons
+
 clean:
 	scons -c
 	rm -f *.gcov
@@ -8,6 +9,10 @@ clean:
 	rm -f *.gcno
 
 test: default
+	./test_amp
+
+test-debug:
+	scons debug=1
 	./test_amp
 
 coverage:
@@ -26,9 +31,21 @@ coverage:
 valgrind: default
 	CK_FORK=no valgrind --leak-check=full ./test_amp
 
-debug: default
-	scons -Q debug=1
-	#CK_FORK=no gdb --args ./test_amp
+debug:
+	# Turn on debugging symbols in compiled assets. Still uses default optimization level
+	scons debug=1
+
+gdb:
+	scons debug=1
+	CK_FORK=no gdb --args ./test_amp
+
+lldb:
+	#scons -Q debug=1
+	scons debug=1
+	CK_FORK=no lldb -f ./test_amp
+
+debug-no-optimization:
+	scons debug=1 optimization=0
 
 stats:
 	zsh code_stats.zsh
