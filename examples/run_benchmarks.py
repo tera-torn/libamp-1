@@ -7,7 +7,7 @@ import locale
 from subprocess import Popen, PIPE
 import time
 
-locale.setlocale(locale.LC_ALL, 'en_US')
+#locale.setlocale(locale.LC_ALL, 'en_US')
 
 if len(sys.argv) != 2:
     raise ValueError("Pass number of boxes to parse as first argument.")
