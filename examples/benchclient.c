@@ -44,18 +44,21 @@ void usage()
     exit(1);
 }
 
-typedef struct {
+AMP_Box_T *sum_call_box;
+struct Bench_State {
     int count;
     int max_count;
     double start_time;
-} *Bench_State_T;
+};
+typedef struct Bench_State Bench_State_T;
+
 
 /* forward declaration */
 void do_sum_call(AMP_Proto_T *proto, Bench_State_T *state);
 
 void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
 {
-    Bench_State_T state = callback_arg;
+    Bench_State_T *state = callback_arg;
     int error;
     long long total;
 
@@ -102,11 +105,8 @@ void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
 void do_sum_call(AMP_Proto_T *proto, Bench_State_T *state)
 {
     int ret;
-    AMP_Box_T *box = amp_new_box();
-    amp_put_long_long(box, "a", 5);
-    amp_put_long_long(box, "b", 7);
 
-    ret = amp_call(proto, "Sum", box, resp_cb, state, NULL);
+    ret = amp_call(proto, "Sum", sum_call_box, resp_cb, state, NULL);
     if (ret)
     {
         fprintf(stderr, "amp_call() failed: %s\n", amp_strerror(ret));
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     if (parse_host_port(argv[1], server_hostname, NI_MAXHOST, &server_port) != 0)
         usage();
 
-    Bench_State_T state;
+    Bench_State_T *state;
     if ( (state = malloc(sizeof(*state))) == NULL)
     {
         fprintf(stderr, "Unable to allocate Bench_State_T.\n");
@@ -145,6 +145,9 @@ int main(int argc, char *argv[])
     }
 
     state->count = 0;
+    sum_call_box = amp_new_box();
+    amp_put_long_long(sum_call_box, "a", 5);
+    amp_put_long_long(sum_call_box, "b", 7);
 
     const char *errstr;
     state->max_count = strtonum(argv[2], 0, LLONG_MAX, &errstr);
