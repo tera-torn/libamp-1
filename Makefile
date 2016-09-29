@@ -1,4 +1,7 @@
 default:
+	# (Release Mode)
+	# Builds *without* debugging symbols and
+	# *with* an optimization level of 2.
 	scons
 
 clean:
@@ -8,12 +11,15 @@ clean:
 	rm -f *.gcda.info
 	rm -f *.gcno
 
-test: default
+test: debug-no-opt
 	./test_amp
 
-test-debug:
+debug:
+	# Turn on debugging symbols in compiled assets. Still uses default optimization level
 	scons debug=1
-	./test_amp
+
+debug-no-opt:
+	scons debug=1 optimization=0
 
 coverage:
 	BUILD_COVERAGE_SUPPORT=1 scons # build with coverage profiling support
@@ -28,24 +34,14 @@ coverage:
 
 	COMPILE_COVERAGE=1 scons # compile raw coverage files to human-readable text
 
-valgrind: default
+valgrind: debug-no-opt
 	CK_FORK=no valgrind --leak-check=full ./test_amp
 
-debug:
-	# Turn on debugging symbols in compiled assets. Still uses default optimization level
-	scons debug=1
-
-gdb:
-	scons debug=1
+gdb: debug-no-opt
 	CK_FORK=no gdb --args ./test_amp
 
-lldb:
-	#scons -Q debug=1
-	scons debug=1
+lldb: debug-no-opt
 	CK_FORK=no lldb -f ./test_amp
-
-debug-no-optimization:
-	scons debug=1 optimization=0
 
 stats:
 	zsh code_stats.zsh
@@ -61,5 +57,3 @@ benchmark:
 	cd examples && make benchmark
 	examples/asyncserver 22380 &
 	examples/benchclient localhost:22380 100000 > benchlog.txt
-
- 
