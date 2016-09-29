@@ -31,7 +31,7 @@ for var in IMPORTED_VARS:
 env.Append(LINKFLAGS=Split(os.environ.get('LDFLAGS')))
 
 # Libs needed to build test program
-TEST_LIBS = ['check', 'm']
+TEST_LIBS = ['check', 'subunit', 'rt', 'm']
 
 
 COMMON_SOURCES = ['amp.c', 'box.c', 'types.c', 'buftoll.c', 'mem.c',
@@ -197,6 +197,10 @@ testEnv.Append(CFLAGS = ['-DNDEBUG'])
 
 # Always include debug symbols in test program
 testEnv.Append(CFLAGS = ['-g'])
+
+# Test program must link against pthreads as newer versions of
+# libcheck/libsubunit require it.
+testEnv.Append(LINKFLAGS = ['-pthread'])
 
 # Since our test program does not link to the library, but is compiled directly
 # with the libamp object files, the public libamp API symbols should neither be
