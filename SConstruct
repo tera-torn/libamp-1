@@ -31,6 +31,10 @@ for var in IMPORTED_VARS:
 env.Append(LINKFLAGS=Split(os.environ.get('LDFLAGS')))
 
 # Libs needed to build test program
+#
+# TODO: `subunit' and `rt' are not needed to link against older versions
+# of libcheck that apparently don't use subunit - See about making this
+# optional - to not fail to build on older OSs.
 TEST_LIBS = ['check', 'subunit', 'rt', 'm']
 
 
@@ -200,6 +204,7 @@ testEnv.Append(CFLAGS = ['-g'])
 
 # Test program must link against pthreads as newer versions of
 # libcheck/libsubunit require it.
+# TODO: Only do this if pthread is available. This won't work on Windows.
 testEnv.Append(LINKFLAGS = ['-pthread'])
 
 # Since our test program does not link to the library, but is compiled directly
