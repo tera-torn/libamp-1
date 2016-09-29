@@ -1,16 +1,13 @@
 default:
+	# build all examples, including benchmarks.
 	scons
+
+benchmarks: default
 	# set up and run all benchmarks
-	python run_benchmarks.py 4000000
+	python run_benchmarks.py
 
 clean:
 	scons -c
 
 debug:
 	scons debug=1
-
-benchmark:
-	scons debug=1
-
-run-benchmark:
-	python run_benchmarks.py
