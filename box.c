@@ -244,7 +244,7 @@ int _amp_put_buf(AMP_Box_T *box, const char *key,
     struct amp_key_value *keyval;
     struct binding *p;
     int keySize;
-    int bytesNeeded;
+    int bytesNeeded = 0;
 
     keySize = strlen(key);
     if (keySize > MAX_KEY_LENGTH || keySize == 0) {
@@ -255,9 +255,8 @@ int _amp_put_buf(AMP_Box_T *box, const char *key,
         return AMP_BAD_VAL_SIZE;
     }
 
-    bytesNeeded = 1; /* 1 for NUL-byte at end of key string */
     bytesNeeded += sizeof(struct amp_key_value);
-    bytesNeeded += keySize;
+    bytesNeeded += keySize + 1; /* Add one for terminating NUL */
     bytesNeeded += buf_size;
     /* TODO - I think this gives us an extra byte, since
      * amp_key_value already contains a variable of type
@@ -270,7 +269,7 @@ int _amp_put_buf(AMP_Box_T *box, const char *key,
 
     /* Initialize amp_key_value */
     keyval->key = &(keyval->_bufferSpaceStartsHere);
-    strncpy(keyval->key, key, keySize + 1); /* copy key including NUL */
+    memcpy(keyval->key, key, keySize + 1); /* copy key including NUL */
     keyval->keySize = keySize; /* cache key length */
 
     /* value falls directly after the key */
