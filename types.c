@@ -241,36 +241,30 @@ int amp_get_uint(AMP_Box_T *box, const char *key, unsigned int *value)
  * Returns 0 on success, or an AMP_* error code on failure. */
 int amp_put_double(AMP_Box_T *box, const char *key, double value)
 {
-    unsigned char buf[100];
-    int buf_size;
-
     if (isnan(value))
     {
-        buf_size = 3;
-        strncpy((char *)buf, "nan", buf_size);
+        return amp_put_cstring(box, key, "nan");
     }
     else if (isinf(value))
     {
         if (signbit(value) == 0)
         {
             /* positive */
-            buf_size = 3;
-            strncpy((char *)buf, "inf", buf_size);
+            return amp_put_cstring(box, key, "inf");
         }
         else
         {
             /* negative */
-            buf_size = 4;
-            strncpy((char *)buf, "-inf", buf_size);
+            return amp_put_cstring(box, key, "-inf");
         }
     }
     else
     {
         /* not Infinity or NaN so assume a normal float */
-        buf_size = snprintf((char *)buf, 100, "%.17f", value);
+        char buf[100];
+        snprintf(buf, sizeof(buf), "%.17f", value);
+        return amp_put_cstring(box, key, buf);
     }
-
-    return _amp_put_buf(box, key, buf, buf_size);
 }
 
 /* Retrieve and decode a `double' from an AMP_Box.
@@ -431,9 +425,9 @@ int amp_get_double(AMP_Box_T *box, const char *key, double *value)
 int amp_put_datetime(AMP_Box_T *box, const char *key, AMP_DateTime_T *value)
 {
     /* snprintf() needs space for an extra \0 even though we don't need it. */
-    static uint8_t buf[AMP_DT_SIZE+1];
+    uint8_t buf[AMP_DT_SIZE+1];
     char sign;
-    int offset_hour, offset_min;
+    unsigned int offset_hour, offset_min;
 
     /* assert values are within valid ranges */
     if (value->year < 1  || value->year > 9999   ||
@@ -449,22 +443,13 @@ int amp_put_datetime(AMP_Box_T *box, const char *key, AMP_DateTime_T *value)
         return AMP_ENCODE_ERROR;
     }
 
-    offset_hour = value->utc_offset / 60;
-    offset_min  = value->utc_offset % 60;
+    offset_hour = abs(value->utc_offset) / 60;
+    offset_min  = abs(value->utc_offset) % 60;
 
-    if (value->utc_offset >= 0)
-        sign = '+';
-    else
-    {
-        sign = '-';
-        /* If utc_offset is negative, then these two should be negative too -
-         * but we need them to be positive */
-        offset_hour = -offset_hour;
-        offset_min = -offset_min;
-    }
+    sign = value->utc_offset >= 0 ? '+' : '-';
 
     snprintf((char *)buf, AMP_DT_SIZE+1,
-             "%04d-%02d-%02dT%02d:%02d:%02d.%06ld%c%02d:%02d",
+             "%04d-%02d-%02dT%02d:%02d:%02d.%06ld%c%02u:%02u",
              value->year,
              value->month,
              value->day,
