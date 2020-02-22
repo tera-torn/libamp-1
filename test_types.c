@@ -774,7 +774,7 @@ int num_get_bool_tests = (sizeof(get_bool_cases) /
 START_TEST(test__amp_get_bool)
 {
     int ret;
-    int got;
+    bool got;
 
     /* the variable _i is made available by Check's "loop test" machinery */
     struct get_bool_case c = get_bool_cases[_i];
@@ -817,7 +817,7 @@ END_TEST
 START_TEST(test__amp_get_bool__no_such_key)
 {
     int ret;
-    int got;
+    bool got;
     AMP_Box_T * box = amp_new_box();
 
     ret = amp_get_bool(box, "missing_key", &got);

@@ -53,21 +53,15 @@ int amp_put_cstring(AMP_Box_T *box, const char *key, const char *value)
 
 /* Encode and store a boolean value into an AMP_Box.
  * Returns 0 on success, or an AMP_* error code on failure. */
-int amp_put_bool(AMP_Box_T *box, const char *key, int value)
+int amp_put_bool(AMP_Box_T *box, const char *key, bool value)
 {
-    const char *buf;
-    if (value)
-        buf = "True";
-    else
-        buf = "False";
-
-    return _amp_put_buf(box, key, (unsigned char *)buf, strlen(buf));
+    return amp_put_cstring(box, key, value ? "True" : "False");
 }
 
 /* Retrieve and decode a boolean value from an AMP_Box.
- * If the boolean is true `value' is set to 1, otherwise it is set to 0.
+ * If the boolean is true `value' is set to `true' (1), otherwise it is set to `false' (0).
  * Returns 0 on success, or an AMP_* error code on failure. */
-int amp_get_bool(AMP_Box_T *box, const char *key, int *value)
+int amp_get_bool(AMP_Box_T *box, const char *key, bool *value)
 {
     int err;
     unsigned char *buf;
@@ -77,9 +71,9 @@ int amp_get_bool(AMP_Box_T *box, const char *key, int *value)
         return err;
 
     if (buf_size == 4 && memcmp(buf, "True", buf_size) == 0)
-        *value = 1;
+        *value = true;
     else if (buf_size == 5 && memcmp(buf, "False", buf_size) == 0)
-        *value = 0;
+        *value = false;
     else
         return AMP_DECODE_ERROR;
 
@@ -105,7 +99,7 @@ int amp_put_long_long(AMP_Box_T *box, const char *key,
     char buf[bufLen];
 
     snprintf(buf, bufLen, "%lld", value);
-    return _amp_put_buf(box, key, (unsigned char *)buf, strlen(buf));
+    return amp_put_cstring(box, key, buf);
 }
 
 
@@ -148,7 +142,7 @@ int amp_put_int(AMP_Box_T *box, const char *key, int value)
     char buf[bufLen];
 
     snprintf(buf, bufLen, "%d", value);
-    return _amp_put_buf(box, key, (unsigned char *)buf, strlen(buf));
+    return amp_put_cstring(box, key, buf);
 }
 
 
@@ -197,7 +191,7 @@ int amp_put_uint(AMP_Box_T *box, const char *key, unsigned int value)
     char buf[bufLen];
 
     snprintf(buf, bufLen, "%u", value);
-    return _amp_put_buf(box, key, (unsigned char *)buf, strlen(buf));
+    return amp_put_cstring(box, key, buf);
 }
 
 

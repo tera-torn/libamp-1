@@ -15,6 +15,8 @@
 #ifndef _AMP_H
 #define _AMP_H
 
+#include <stdbool.h>
+
 /* Prevent symbols from being named-mangled by evil C++ compilers */
 #ifdef __cplusplus
 extern "C" {
@@ -654,13 +656,13 @@ int AMP_DLL amp_put_double(AMP_Box_T *box, const char *key, double value);
 
 /* AMP Type: Boolean (C type `int') */
 
-/* get a `bool' (int) from a value in an AMP box and store it in
+/* get a `bool' from a value in an AMP box and store it in
  * the variable pointed to by `value' */
-int AMP_DLL amp_get_bool(AMP_Box_T *box, const char *key, int *value);
+int AMP_DLL amp_get_bool(AMP_Box_T *box, const char *key, bool *value);
 
 
-/* put a `bool' (int) into an AMP box */
-int AMP_DLL amp_put_bool(AMP_Box_T *box, const char *key, int value);
+/* put a `bool' into an AMP box */
+int AMP_DLL amp_put_bool(AMP_Box_T *box, const char *key, bool value);
 
 
 /* AMP Type: DateTime (C type `AMP_DateTime_T *') */
