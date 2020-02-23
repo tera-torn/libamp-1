@@ -1121,13 +1121,14 @@ struct {
     {AMP_BAD_VAL_SIZE,    "Invalid AMP value length"},
     {AMP_BOX_EMPTY,       "AMP box contains no key/value pairs"},
     {AMP_REQ_KEY_MISSING, "AMP box did not contain a special key required by the wire-protocol"},
-    {AMP_PROTO_ERROR,     "AMP_Proto object is in fatal error state due to previously encountered error"},
+    {AMP_PROTO_ERROR,     "AMP_Proto_T object is in fatal error state due to previously encountered error"},
     {AMP_KEY_NOT_FOUND,   "The requested key was not found in the AMP box"},
     {AMP_DECODE_ERROR,    "The value failed to decode to the requested type"},
     {AMP_ENCODE_ERROR,    "The value failed to encode as the specified type"},
     {AMP_OUT_OF_RANGE,    "The decoded value falls outside the representable range of the requested type"},
     {AMP_INTERNAL_ERROR,  "Libamp encountered an internal error. Please file a bug report."},
     {AMP_NO_SUCH_ASK_KEY, "amp_cancel() could not find the ask_key you requested."},
+    {AMP_WRITE_ERROR,     "Error in user-supplied write handler. Data may not have been sent to the AMP peer."},
     {ENOMEM,              "malloc() failed. Out Of Memory."}
 };
 

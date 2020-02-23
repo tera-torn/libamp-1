@@ -56,6 +56,9 @@ extern "C" {
 /* amp_cancel() could not find the ask_key you requested */
 #define AMP_NO_SUCH_ASK_KEY 111
 
+/* error in user-supplied write handler */
+#define AMP_WRITE_ERROR 112
+
 
 /* One of the codes above, or ENOMEM
  * TODO - go through and use this type instead of int where appropriate */

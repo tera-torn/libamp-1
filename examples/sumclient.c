@@ -131,7 +131,11 @@ void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state)
 /* Get some bytes to AMP peer somehow.. (gets here via do_sum_call() internals..)*/
 int do_write(AMP_Proto_T *proto, unsigned char *buf, int bufSize, void *write_arg)
 {
-    send(*(int *)write_arg, buf, bufSize, 0);
+    if (send(*(int *)write_arg, buf, bufSize, 0) == -1)
+    {
+        fprintf(stderr, "send(): %s\n", strerror(errno));
+        return AMP_WRITE_ERROR;
+    };
     return 0;
 }
 
