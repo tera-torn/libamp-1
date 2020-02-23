@@ -341,7 +341,7 @@ AMP_DLL AMP_Proto_T *amp_new_proto(void);
  * Any current box being accumulated will be forgotten, and the AMP_Proto
  * will be placed in a state to begin parsing a new box. Any error state
  * associated with the AMP_Proto will be cleared.
- * 
+ *
  * Don't call this unless you know what you're doing. Other side of the AMP
  * connection won't be told about this event - and you may fail to parse
  * the byte-stream after this point if called at an arbitrary point. (e.g. if the
@@ -393,10 +393,10 @@ int AMP_DLL amp_consume_bytes(AMP_Proto_T *proto, unsigned char* buf, int nbytes
 
 
 /* Set handler function for writing data to the remote AMP peer.
- *   
+ *
  * ALWAYS call this function to set a write handler if you plan on using amp_call*()
  * APIs or you plan to use this AMP_Proto_T to reply to any commands.
- * 
+ *
  * TODO: libamp crashes hard if it tries to write data to the AMP peer but doesn't have
  * a write handler set (NULL-ptr deref).
  */

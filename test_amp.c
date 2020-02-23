@@ -1047,7 +1047,7 @@ START_TEST(test_parse_box_full_with_malloc_failures)
         }
         else
         {
-            
+
             fprintf(stderr, "WEEEEEEEEEEEEEE!!!\n");
 
             _debug_print_box(proto->box);

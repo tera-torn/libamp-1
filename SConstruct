@@ -10,7 +10,7 @@ if sys.platform == 'win32':
     env = Environment(tools=['mingw'])
 else:
     env = Environment()
-    
+
 spew = ARGUMENTS.get('spew', 0)
 if int(spew):
     env.Append(CFLAGS = ['-DDEBUG'])

@@ -722,7 +722,7 @@ int amp_parse_box_full(AMP_Proto_T *proto, AMP_Box_T *box, unsigned char* buf, i
         }
 
         key_len = buf[idx+1];
-        
+
         if (!key_len) {
             // END of AMP packet.
             return 0;
@@ -966,7 +966,7 @@ int _amp_do_write(AMP_Proto_T *proto, unsigned char *buf, int buf_size)
         amp_log("AMP_Proto_T.write == NULL, missing call to amp_set_write_handler()?");
         free(buf);
         return 1;
-    }        
+    }
     return proto->write(proto, buf, buf_size, proto->write_arg);
 }
 
