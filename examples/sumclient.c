@@ -47,12 +47,13 @@ typedef struct {
 } *Sum_State_T;
 
 
-void usage()
+void usage(char *myname)
 {
-    fprintf(stderr, "sumclient <host:port> <a> <b> [ <c> ... ]\n\n"
-                    "Ex: sumclient localhost:1234 5 7 9 2\n"
+    fprintf(stderr, "Usage: %s <host:port> <a> <b> [ <c> ... ]\n\n"
+                    "Example: %s localhost:1234 5 7 9 2\n\n"
                     "Will use the Sum server on localhost port 1234 to add "
-                    "the numbers 5, 7, 9 and 2.\n");
+                    "the numbers 5, 7, 9 and 2.\n",
+                    myname, myname);
     exit(1);
 }
 
@@ -143,7 +144,7 @@ int do_write(AMP_Proto_T *proto, unsigned char *buf, int bufSize, void *write_ar
 int main(int argc, char *argv[])
 {
     if (argc < 4)
-        usage();
+        usage(argv[0]);
 
     char buf[256];
     int ret;
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
 
     /* do we have too many operands? */
     if (sum_state->max_idx >= MAX_OPERANDS)
-        usage();
+        usage(argv[0]);
 
     /* Convert operand arguments to numbers */
     const char *errstr;
@@ -175,12 +176,12 @@ int main(int argc, char *argv[])
     {
         sum_state->operands[i] = strtonum(argv[i+2], LLONG_MIN, LLONG_MAX, &errstr);
         if (errstr != NULL)
-            usage();
+            usage(argv[0]);
     }
 
     /* split IP from port number */
     if (parse_host_port(argv[1], server_hostname, NI_MAXHOST, &server_port) != 0)
-        usage();
+        usage(argv[0]);
 
 /* Windows is dumb */
 #ifdef WIN32
