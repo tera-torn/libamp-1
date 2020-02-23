@@ -14,6 +14,7 @@
 
 #ifndef WIN32
   #include <netinet/in.h>
+  #include <arpa/inet.h>
 #else
   #include <winsock2.h>
   #include <Ws2tcpip.h>
@@ -22,6 +23,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <string.h>
 #include <errno.h>
 
@@ -104,13 +106,9 @@ error:
 /* Called by libamp to send data to the AMP peer */
 int do_write(AMP_Proto_T *p, unsigned char *buf, int bufSize, void *write_arg)
 {
-    debug_print("%s\n", "do_write()1");
-    struct bufferevent *bev = (struct bufferevent *)write_arg;
-    debug_print("%s bufSize is %i\n", "do_write()2", bufSize);
+    struct bufferevent *bev = write_arg;
     bufferevent_write(bev, buf, bufSize);
-    debug_print("%s\n", "do_write()3");
     free(buf);
-    debug_print("%s\n", "do_write()4");
     return 0;
 }
 
@@ -167,7 +165,14 @@ void listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
                  struct sockaddr *sa, int socklen, void *state)
 {
     /* Called when a new socket connection has been accept()ed */
-    debug_print("%s\n", "listener_cb()");
+
+    struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+    char ip[INET_ADDRSTRLEN];
+    uint16_t port;
+
+    inet_ntop(AF_INET, &sin->sin_addr, ip, sizeof(ip));
+    port = htons(sin->sin_port);
+    fprintf(stderr, "Connection accepted from %s:%" PRIu16 "\n", ip, port);
 
     struct event_base *base = state;
     struct bufferevent *bev;
