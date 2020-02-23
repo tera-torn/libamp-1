@@ -38,12 +38,13 @@
 /* strtonum() from OpenBSD */
 #include "strtonum.h"
 
-void usage()
+void usage(char * myname)
 {
-    fprintf(stderr, "asyncserver <port>\n\n"
-                    "E.g. asyncserver 1234\n"
-                    "Will bind to all interface on port 1234 and process "
-                    "client connections asynchronously.\n");
+    fprintf(stderr, "Usage: %s <port>\n\n"
+                    "E.g. %s 1234\n"
+                    "Will bind to all interfaces on port 1234 and process "
+                    "client connections asynchronously.\n",
+                    myname, myname);
     exit(1);
 }
 
@@ -202,11 +203,11 @@ int main(int argc, char *argv[])
     int server_port;
 
     if (argc != 2)
-        usage();
+        usage(argv[0]);
 
     server_port = strtonum(argv[1], (long long)1, (long long)65535, NULL);
     if (server_port == 0)
-        usage(); /* bad port */
+        usage(argv[0]); /* bad port */
 
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(struct sockaddr_in));
