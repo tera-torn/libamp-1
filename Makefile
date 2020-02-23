@@ -59,12 +59,3 @@ lldb-release: default
 
 stats:
 	zsh code_stats.zsh
-
-# NO point enabling this build target until we actually use libjansson
-# for something and figure out how to track upstream versions better.
-#libjansson:
-#	# build bundled jansson library?
-#	cd jansson && [ ! -f ./configure ] && autoreconf -i || true
-#	cd jansson && ./configure --prefix=`pwd`/../tmp-deps
-#	cd jansson && make
-#	cd jansson && make install
