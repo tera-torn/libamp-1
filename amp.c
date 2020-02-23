@@ -963,7 +963,7 @@ int _amp_do_write(AMP_Proto_T *proto, unsigned char *buf, int buf_size)
 {
     if (proto->write == NULL)
     {
-        amp_log("AMP_Proto.write == NULL, missing call to amp_set_write_handler()?");
+        amp_log("AMP_Proto_T.write == NULL, missing call to amp_set_write_handler()?");
         free(buf);
         return 1;
     }        

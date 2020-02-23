@@ -5,7 +5,7 @@
  */
 
 
-/* Example server for "Sum" and "Divide" commands
+/* Example server for a "Sum" command
  * using libevent for non-blocking I/O */
 
 
@@ -37,7 +37,6 @@
 #include <event2/listener.h>
 
 #include "common.h"
-/* strtonum() from OpenBSD */
 #include "strtonum.h"
 
 void usage(char * myname)
@@ -50,15 +49,11 @@ void usage(char * myname)
     exit(1);
 }
 
+/* process Sum command */
 void sum_responder(AMP_Proto_T *proto, AMP_Request_T *req,
                    void *responder_arg)
 {
     debug_print("Got command request: %s\n", req->command->value);
-    /* Process Sum */
-
-    /* XXX Geeeez... I think we should start setting/clearing `errno'
-     * instead of requiring the return value of amp_* functions to be
-     * capture for error handling. */
 
     AMP_Box_T *answer = NULL;
     int ret;
@@ -113,11 +108,11 @@ int do_write(AMP_Proto_T *p, unsigned char *buf, int bufSize, void *write_arg)
 }
 
 
+/* Feed libamp some data */
 void conn_readcb(struct bufferevent *bev, void *state)
 {
     debug_print("%s\n", "conn_readcb()");
 
-    /* Feed libamp some data */
 
     unsigned char buf[256];
     int bytesRead;
@@ -135,9 +130,9 @@ void conn_readcb(struct bufferevent *bev, void *state)
 }
 
 
+/* Called when the output buffer for this bufferevent has been drained */
 void conn_writecb(struct bufferevent *bev, void *state)
 {
-    /* Called when the output buffer for this bufferevent has been drained */
     debug_print("%s\n", "conn_writecb()");
 }
 

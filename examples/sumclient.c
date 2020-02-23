@@ -33,7 +33,6 @@
 
 #include "common.h"
 #include "net_utils.h"
-/* strtonum() from OpenBSD */
 #include "strtonum.h"
 
 
@@ -62,8 +61,8 @@ void usage()
 void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state);
 
 
-/*  
- *   Code to Get reply
+/*
+ *   Code to get reply
  */
 void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
 {
@@ -107,8 +106,8 @@ void resp_cb(AMP_Proto_T *proto, AMP_Result_T *result, void *callback_arg)
 }
 
 
-/*  
- *   Code to Send AMP message
+/*
+ *   Code to send AMP message
  */
 void do_sum_call(AMP_Proto_T *proto, Sum_State_T sum_state)
 {
